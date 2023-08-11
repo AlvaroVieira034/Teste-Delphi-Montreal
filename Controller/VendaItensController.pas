@@ -58,37 +58,7 @@ begin
     SQL.Add('WHERE COD_VENDA = :COD_VENDA');
     ParamByName('COD_VENDA').AsInteger := iCodigo;
     Open;
-
   end;
-
-
-  {QryVenda := TFDQuery.Create(nil);
-  try
-    with QryVenda do
-    begin
-      Connection := DMConexao.FDConnection;
-      SQL.Clear;
-      SQL.Add('SELECT COD_VENDA');
-      SQL.Add(',COD_PRODUTO');
-      SQL.Add(',DES_DESCRICAO');
-      SQL.Add(',VAL_PRECO_UNITARIO');
-      SQL.Add(',VAL_QUANTIDADE');
-      SQL.Add(',VAL_TOTAL_VENDA');
-      SQL.Add('FROM TAB_VENDA_ITENS');
-      SQL.Add('WHERE COD_VENDA = :COD_VENDA');
-      ParamByName('COD_VENDA').AsInteger := iCodigo;
-      Open;
-
-      VendaItens.Cod_Venda := FieldByName('COD_VENDA').AsInteger;
-      VendaItens.Cod_Produto := FieldByName('COD_PRODUTO').AsInteger;
-      VendaItens.Des_Descricao := FieldByName('DES_DESCRICAO').AsString;
-      VendaItens.Val_Preco_Unitario := FieldByName('VAL_PRECO_UNITARIO').AsFloat;
-      VendaItens.Val_Quantidade := FieldByName('VAL_QUANTIDADE').AsInteger;
-      VendaItens.Val_Total_Venda := FieldByName('VAL_TOTAL_VENDA').AsFloat;
-    end;
-  finally
-    FreeAndNil(QryVenda);
-  end;}
 end;
 
 function TVendaItens.Inserir(VendaItens: TVendaItens; out sErro: String): Boolean;
@@ -98,13 +68,13 @@ begin
     Close;
     SQL.Clear;
     SQL.Add('INSERT INTO TAB_VENDA_ITENS( ');
-    SQL.Add(',COD_VENDA ');
+    SQL.Add('COD_VENDA ');
     SQL.Add(',COD_PRODUTO ');
     SQL.Add(',DES_DESCRICAO ');
     SQL.Add(',VAL_PRECO_UNITARIO ');
     SQL.Add(',VAL_QUANTIDADE ');
     SQL.Add(',VAL_TOTAL_VENDA) ');
-    SQL.Add('VALUES (:COD_VENDA, ');
+    SQL.Add('VALUES (:COD_VENDA ');
     SQL.Add(',:COD_PRODUTO ');
     SQL.Add(',:DES_DESCRICAO ');
     SQL.Add(',:VAL_PRECO_UNITARIO ');

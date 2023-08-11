@@ -21,6 +21,7 @@ Type
     function Inserir(Produto: TProduto; out sErro: String): Boolean;
     function Alterar(Produto: TProduto; iCodigo: Integer; out sErro: String): Boolean;
     function Excluir(iCodigo: Integer; out sErro : String): Boolean;
+    function RetornaValorUnitario(iCodigo: integer): Double;
 
     property Cod_Produto: Integer read FCod_Produto write FCod_Produto;
     property Cod_Status: Integer read FCod_Status write FCod_Status;
@@ -199,6 +200,30 @@ begin
   end;
 end;
 
+function TProduto.RetornaValorUnitario(iCodigo: integer): Double;
+var QryTemp : TFDQuery;
+begin
+  QryTemp := TFDQuery.Create(nil);
+  Result := 0;
+  try
+    with QryTemp do
+    begin
+      Connection := DMConexao.FDConnection;
+      SQL.Clear;
+      SQL.Add('SELECT COD_PRODUTO');
+      SQL.Add(',VAL_PRECO_UNITARIO');
+      SQL.Add('FROM TAB_PRODUTO');
+      SQL.Add('WHERE COD_PRODUTO = :COD_PRODUTO');
+      ParamByName('COD_PRODUTO').AsInteger := iCodigo;
+      Open;
+      Result := FieldByName('VAL_PRECO_UNITARIO').AsFloat
+    end;
+  finally
+    FreeAndNil(QryTemp);
+  end;
+
+end;
+
 procedure TProduto.SetDes_Descricao(const Value: String);
 begin
   if Value = EmptyStr then
@@ -206,5 +231,6 @@ begin
 
   FDes_Descricao := Value;
 end;
+
 
 end.

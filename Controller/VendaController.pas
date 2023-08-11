@@ -53,7 +53,7 @@ begin
     SQL.Add('FROM TAB_VENDA VDA');
     SQL.Add('INNER JOIN TAB_CLIENTE CLI ON VDA.COD_CLIENTE = CLI.COD_CLIENTE');
     SQL.Add('WHERE ' + campoIndice + ' like :pNOME');
-    SQL.Add('ORDER BY ' + campoIndice);
+    SQL.Add('ORDER BY DTA_VENDA');
     ParamByName('PNOME').AsString := sNome + '%';
     Prepared := True;
     Open();
@@ -91,6 +91,7 @@ begin
 end;
 
 function TVenda.Inserir(Venda: TVenda; out sErro: String): Boolean;
+var ultimoCod_Venda: Integer;
 begin
   with DmTabelas.QryInserir, Venda do
   begin
@@ -119,6 +120,12 @@ begin
       ExecSQL;
       Result := True;
       DMConexao.FDConnection.Commit;
+
+      DmTabelas.QryInserir.Close;
+      DmTabelas.QryInserir.SQL.Text := 'SELECT MAX(COD_VENDA) AS ULTIMOID FROM TAB_VENDA ';
+      DmTabelas.QryInserir.Open;
+      Venda.Cod_Venda := DmTabelas.QryInserir.FieldByName('ULTIMOID').AsInteger;
+
     except
       on E: Exception do
       begin

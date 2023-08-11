@@ -25,7 +25,6 @@ object FrmCadVenda: TFrmCadVenda
     Height = 172
     Align = alTop
     TabOrder = 0
-    ExplicitWidth = 618
     object GbxDados: TGroupBox
       Left = 3
       Top = 0
@@ -66,7 +65,7 @@ object FrmCadVenda: TFrmCadVenda
         Top = 130
         Width = 115
         Height = 27
-        Caption = '&Adiciona Itens'
+        Caption = '&Adicionar Itens'
         Glyph.Data = {
           36030000424D3603000000000000360000002800000010000000100000000100
           18000000000000030000C40E0000C40E00000000000000000000BB8A5EBB8A5E
@@ -144,7 +143,7 @@ object FrmCadVenda: TFrmCadVenda
         Width = 74
         Height = 21
         Alignment = taRightJustify
-        TabOrder = 1
+        TabOrder = 2
         OnExit = EdtCodClienteExit
         OnKeyPress = EdtCodClienteKeyPress
       end
@@ -156,7 +155,7 @@ object FrmCadVenda: TFrmCadVenda
         KeyField = 'COD_CLIENTE'
         ListField = 'DES_NOME'
         ListSource = DmTabelas.DsClientes
-        TabOrder = 2
+        TabOrder = 3
         OnClick = LCbxClienteClick
       end
       object EdtTotalVenda: TEdit
@@ -166,16 +165,7 @@ object FrmCadVenda: TFrmCadVenda
         Height = 21
         Alignment = taRightJustify
         Enabled = False
-        TabOrder = 3
-      end
-      object EdtDataVenda: TEdit
-        Left = 111
-        Top = 56
-        Width = 74
-        Height = 21
-        Alignment = taCenter
         TabOrder = 4
-        OnKeyPress = EdtDataVendaKeyPress
       end
       object RdgStatus: TRadioGroup
         Left = 400
@@ -184,10 +174,22 @@ object FrmCadVenda: TFrmCadVenda
         Height = 51
         Caption = ' Status '
         Columns = 2
+        ItemIndex = 0
         Items.Strings = (
           'Efetivada'
           'Pendente')
         TabOrder = 5
+      end
+      object EdtDataVenda: TMaskEdit
+        Left = 111
+        Top = 56
+        Width = 72
+        Height = 21
+        Alignment = taCenter
+        EditMask = '!99/99/0000;1;_'
+        MaxLength = 10
+        TabOrder = 1
+        Text = '  /  /    '
       end
     end
   end
@@ -198,8 +200,6 @@ object FrmCadVenda: TFrmCadVenda
     Height = 297
     Align = alClient
     TabOrder = 1
-    ExplicitWidth = 618
-    ExplicitHeight = 287
     object BtnGravar: TSpeedButton
       Left = 51
       Top = 256
@@ -234,7 +234,7 @@ object FrmCadVenda: TFrmCadVenda
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFB0D6C74AB192B0D6C7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFCCE4DBFFFFFF}
-      OnClick = BtnCancelarClick
+      OnClick = BtnGravarClick
     end
     object BtnCancelar: TSpeedButton
       Left = 249
@@ -433,6 +433,7 @@ object FrmCadVenda: TFrmCadVenda
         Height = 21
         Alignment = taRightJustify
         TabOrder = 3
+        OnEnter = EdtPrecoTotalEnter
       end
       object PnlDbGrid: TPanel
         Left = 11
@@ -459,15 +460,15 @@ object FrmCadVenda: TFrmCadVenda
               Expanded = False
               FieldName = 'DES_DESCRICAO'
               Title.Caption = 'Descri'#231#227'o do Produto'
-              Width = 309
+              Width = 294
               Visible = True
             end
             item
+              Alignment = taCenter
               Expanded = False
               FieldName = 'VAL_QUANTIDADE'
               Title.Alignment = taCenter
               Title.Caption = 'Quantidade'
-              Width = 65
               Visible = True
             end
             item
@@ -475,15 +476,15 @@ object FrmCadVenda: TFrmCadVenda
               FieldName = 'VAL_PRECO_UNITARIO'
               Title.Alignment = taCenter
               Title.Caption = 'Pre'#231'o Unit'#225'rio'
-              Width = 90
+              Width = 84
               Visible = True
             end
             item
               Expanded = False
               FieldName = 'VAL_TOTAL_VENDA'
               Title.Alignment = taCenter
-              Title.Caption = 'Pre'#231'o Total'
-              Width = 76
+              Title.Caption = 'Total Venda'
+              Width = 91
               Visible = True
             end>
         end
@@ -498,11 +499,13 @@ object FrmCadVenda: TFrmCadVenda
         ListFieldIndex = 1
         ListSource = DmTabelas.DsProdutos
         TabOrder = 0
+        OnExit = LCbxProdutosExit
       end
     end
   end
   object DsVendaItem: TDataSource
-    DataSet = CdsVendaItem
+    DataSet = MTblVendaItem
+    OnDataChange = DsVendaItemDataChange
     Left = 544
     Top = 320
   end
@@ -511,32 +514,39 @@ object FrmCadVenda: TFrmCadVenda
     Left = 552
     Top = 104
   end
-  object CdsVendaItem: TClientDataSet
-    Aggregates = <>
-    Params = <>
-    Left = 464
+  object MTblVendaItem: TFDMemTable
+    FetchOptions.AssignedValues = [evMode]
+    FetchOptions.Mode = fmAll
+    ResourceOptions.AssignedValues = [rvSilentMode]
+    ResourceOptions.SilentMode = True
+    UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
+    UpdateOptions.CheckRequired = False
+    UpdateOptions.AutoCommitUpdates = True
+    Left = 480
     Top = 320
-    object CdsVendaItemID_ITEM: TIntegerField
+    object MTblVendaItemID_ITEM: TIntegerField
       FieldName = 'ID_ITEM'
     end
-    object CdsVendaItemCOD_VENDA: TIntegerField
+    object MTblVendaItemCOD_VENDA: TIntegerField
       FieldName = 'COD_VENDA'
     end
-    object CdsVendaItemCOD_PRODUTO: TIntegerField
+    object MTblVendaItemCOD_PRODUTO: TIntegerField
       FieldName = 'COD_PRODUTO'
     end
-    object CdsVendaItemDES_DESCRICAO: TStringField
+    object MTblVendaItemDES_DESCRICAO: TStringField
       FieldName = 'DES_DESCRICAO'
       Size = 50
     end
-    object CdsVendaItemVAL_PRECO_UNITARIO: TFloatField
+    object MTblVendaItemVAL_PRECO_UNITARIO: TFloatField
       FieldName = 'VAL_PRECO_UNITARIO'
+      DisplayFormat = '#,##0.00'
     end
-    object CdsVendaItemVAL_QUANTIDADE: TIntegerField
+    object MTblVendaItemVAL_QUANTIDADE: TIntegerField
       FieldName = 'VAL_QUANTIDADE'
     end
-    object CdsVendaItemVAL_TOTAL_VENDA: TFloatField
+    object MTblVendaItemVAL_TOTAL_VENDA: TFloatField
       FieldName = 'VAL_TOTAL_VENDA'
+      DisplayFormat = '#,##0.00'
     end
   end
 end

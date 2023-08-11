@@ -7,7 +7,9 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Vcl.Grids, Vcl.DBGrids, Vcl.DBCtrls,
   Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls, ProdutoController, ClienteController, VendaController, VendaItensController,
-  Datasnap.DBClient;
+  Datasnap.DBClient, FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, Vcl.ComCtrls, Vcl.Mask;
 {$ENDREGION}
 
 type
@@ -27,7 +29,6 @@ type
     EdtCodCliente: TEdit;
     LCbxCliente: TDBLookupComboBox;
     EdtTotalVenda: TEdit;
-    EdtDataVenda: TEdit;
     PnlItens: TPanel;
     GbxItens: TGroupBox;
     Label7: TLabel;
@@ -44,18 +45,19 @@ type
     RdgStatus: TRadioGroup;
     DsVendaItem: TDataSource;
     DsVenda: TDataSource;
-    DbGridItensPedido: TDBGrid;
     BtnGravar: TSpeedButton;
     BtnCancelar: TSpeedButton;
     BtnSair: TSpeedButton;
-    CdsVendaItem: TClientDataSet;
-    CdsVendaItemID_ITEM: TIntegerField;
-    CdsVendaItemCOD_VENDA: TIntegerField;
-    CdsVendaItemCOD_PRODUTO: TIntegerField;
-    CdsVendaItemDES_DESCRICAO: TStringField;
-    CdsVendaItemVAL_PRECO_UNITARIO: TFloatField;
-    CdsVendaItemVAL_QUANTIDADE: TIntegerField;
-    CdsVendaItemVAL_TOTAL_VENDA: TFloatField;
+    MTblVendaItem: TFDMemTable;
+    MTblVendaItemID_ITEM: TIntegerField;
+    MTblVendaItemCOD_VENDA: TIntegerField;
+    MTblVendaItemCOD_PRODUTO: TIntegerField;
+    MTblVendaItemDES_DESCRICAO: TStringField;
+    MTblVendaItemVAL_PRECO_UNITARIO: TFloatField;
+    MTblVendaItemVAL_QUANTIDADE: TIntegerField;
+    MTblVendaItemVAL_TOTAL_VENDA: TFloatField;
+    DbGridItensPedido: TDBGrid;
+    EdtDataVenda: TMaskEdit;
 {$ENDREGION}
 
     procedure BtnCancelarClick(Sender: TObject);
@@ -70,30 +72,30 @@ type
     procedure BtnSairClick(Sender: TObject);
     procedure BtnAddItemGridClick(Sender: TObject);
     procedure BtnDelItemGridClick(Sender: TObject);
-
+    procedure EdtPrecoTotalEnter(Sender: TObject);
+    procedure LCbxProdutosExit(Sender: TObject);
+    procedure DsVendaItemDataChange(Sender: TObject; Field: TField);
+    procedure BtnGravarClick(Sender: TObject);
 
   private
     ValoresOriginais: array of string;
     procedure CarregarVendas;
     procedure InserirVendas;
-    procedure AlterarVendas;
     procedure InserirVendaItens;
+    procedure AlterarVendas;
     procedure AlterarVendaItens;
     function ValidarDados(tipoDados: string): Boolean;
-    procedure GravarDados;
-    procedure GravarDadosVenda;
-    procedure GravarDadosItens;
     procedure LimpaCamposPedido;
     procedure LimpaCamposItens;
     procedure PesquisarProdutosAtivos;
     procedure PesquisarClientesAtivos;
     procedure PreencheCdsVendaItem;
 
-
   public
     FOperacao: TOperacao;
     Venda: TVenda;
     VendaItens: TVendaItens;
+    totVenda: Double;
 
   end;
 
@@ -111,10 +113,11 @@ procedure TFrmCadVenda.FormCreate(Sender: TObject);
 begin
   Venda := TVenda.Create;
   VendaItens := TVendaItens.Create;
+  totVenda := 0;
   PesquisarProdutosAtivos();
   PesquisarClientesAtivos();
   SetLength(ValoresOriginais, 5);
-  CdsVendaItem.CreateDataSet;
+  MTblVendaItem.CreateDataSet;
 end;
 
 procedure TFrmCadVenda.FormShow(Sender: TObject);
@@ -153,11 +156,9 @@ end;
 
 procedure TFrmCadVenda.CarregarVendas;
 begin
-  CdsVendaItem.Close;
-  CdsVendaItem.CreateDataSet;
-
+  MTblVendaItem.Close;
+  MTblVendaItem.CreateDataSet;
   Venda.Carregar(Venda, DsVenda.DataSet.FieldByName('COD_VENDA').AsInteger);
-
   with Venda do
   begin
     RdgStatus.ItemIndex := Cod_Status;
@@ -168,20 +169,33 @@ begin
   end;
 
   VendaItens.Carregar(VendaItens, DsVenda.DataSet.FieldByName('COD_VENDA').AsInteger);
-
   with DmTabelas.QryPesquisarItens do
   begin
     while not DmTabelas.QryPesquisarItens.eof do
     begin
-      CdsVendaItem.Append;
-      CdsVendaItemCOD_PRODUTO.AsInteger := FieldByName('COD_PRODUTO').AsInteger;
-      CdsVendaItemDES_DESCRICAO.AsString := FieldByName('DES_DESCRICAO').AsString;
-      CdsVendaItemVAL_QUANTIDADE.AsInteger := FieldByName('VAL_QUANTIDADE').AsInteger;
-      CdsVendaItemVAL_PRECO_UNITARIO.AsFloat := FieldByName('VAL_PRECO_UNITARIO').AsFloat;
-      CdsVendaItemVAL_TOTAL_VENDA.AsFloat := FieldByName('VAL_TOTAL_VENDA').AsFloat;
-      CdsVendaItem.Post;
+      MTblVendaItem.Append;
+      MTblVendaItemCOD_PRODUTO.AsInteger := FieldByName('COD_PRODUTO').AsInteger;
+      MTblVendaItemDES_DESCRICAO.AsString := FieldByName('DES_DESCRICAO').AsString;
+      MTblVendaItemVAL_QUANTIDADE.AsInteger := FieldByName('VAL_QUANTIDADE').AsInteger;
+      MTblVendaItemVAL_PRECO_UNITARIO.AsFloat := FieldByName('VAL_PRECO_UNITARIO').AsFloat;
+      MTblVendaItemVAL_TOTAL_VENDA.AsFloat := FieldByName('VAL_TOTAL_VENDA').AsFloat;
+      MTblVendaItem.Post;
       DmTabelas.QryPesquisarItens.Next;
     end;
+  end;
+end;
+
+procedure TFrmCadVenda.DsVendaItemDataChange(Sender: TObject; Field: TField);
+begin
+  if MTblVendaItem.RecordCount > 0 then
+  begin
+    BtnGravar.Enabled := True;
+    BtnCancelar.Enabled := True;
+  end
+  else
+  begin
+    BtnGravar.Enabled := False;
+    BtnCancelar.Enabled := False;
   end;
 end;
 
@@ -203,38 +217,52 @@ begin
     key:=#0;
 end;
 
+procedure TFrmCadVenda.EdtPrecoTotalEnter(Sender: TObject);
+var quant : Integer;
+    valUni: Double;
+begin
+  quant := StrToInt(EdtQuantidade.Text);
+  valUni := StrToFloat(EdtPrecoUnit.Text);
+  EdtPrecoTotal.Text := FloatToStr(valUni * quant);
+end;
+
 procedure TFrmCadVenda.InserirVendas;
-//var Venda : TVenda;
 var sErro: String;
 begin
-  //Venda := TVenda.Create;
-  try
-    with Venda do
-    begin
-      Cod_Status := RdgStatus.ItemIndex;
-      Cod_Cliente := StrToInt(EdtCodCliente.Text);
-      Dta_Venda := StrToDate(EdtDataVenda.Text);
-      Val_Total_Venda := StrToFloat(EdtTotalVenda.Text);
+  with Venda do
+  begin
+    Cod_Status := RdgStatus.ItemIndex;
+    Cod_Cliente := StrToInt(EdtCodCliente.Text);
+    Dta_Venda := StrToDate(EdtDataVenda.Text);
+    Val_Total_Venda := StrToFloat(EdtTotalVenda.Text);
 
-      if Venda.Inserir(Venda, sErro) = false then
-        raise Exception.Create(sErro)
-      else
-        MessageDlg('Registro incluido com sucesso !!', mtInformation, [mbOk], 0);
-
-      //BtnSair.Click
-    end;
-  finally
-    //FreeAndNil(Venda);
+    if Venda.Inserir(Venda, sErro) = false then
+      raise Exception.Create(sErro)
   end;
-
 end;
 
 procedure TFrmCadVenda.InserirVendaItens;
+var sErro : string;
 begin
+  MTblVendaItem.First;
+  while not MTblVendaItem.eof do
+  begin
+    with VendaItens do
+    begin
+      Cod_Venda := Venda.Cod_Venda;
+      Cod_Produto := MTblVendaItemCOD_PRODUTO.AsInteger;
+      Des_Descricao := MTblVendaItemDES_DESCRICAO.AsString;
+      Val_Preco_Unitario := MTblVendaItemVAL_PRECO_UNITARIO.AsFloat;
+      Val_Quantidade := MTblVendaItemVAL_QUANTIDADE.AsInteger;
+      Val_Total_Venda := MTblVendaItemVAL_TOTAL_VENDA.AsFloat;
 
+      if VendaItens.Inserir(VendaItens, sErro) = false then
+        raise Exception.Create(sErro)
+
+    end;
+    MTblVendaItem.Next;
+  end;
 end;
-
-
 
 procedure TFrmCadVenda.AlterarVendas;
 var Venda : TVenda;
@@ -267,7 +295,6 @@ begin
 
 end;
 
-
 function TFrmCadVenda.ValidarDados(tipoDados: string): Boolean;
 begin
   Result := False;
@@ -290,58 +317,59 @@ begin
 
   if tipoDados = 'Item' then
   begin
+    if LCbxProdutos.KeyValue = Null then
+    begin
+      MessageDlg('O produto precisa ser informado!', mtInformation, [mbOK], 0);
+      LCbxProdutos.SetFocus;
+      Exit;
+    end;
 
+    if EdtQuantidade.Text = '' then
+    begin
+      MessageDlg('A quantidade deve ser preenchida!', mtInformation, [mbOK], 0);
+      EdtQuantidade.SetFocus;
+      Exit;
+    end;
+
+    if StrToFloat(EdtQuantidade.Text) = 0 then
+    begin
+      MessageDlg('A quantidade não pode ser igual a 0!', mtInformation, [mbOK], 0);
+      EdtQuantidade.SetFocus;
+      Exit;
+    end;
+
+    if EdtPrecoUnit.Text = '' then
+    begin
+      MessageDlg('o preço unitário deve ser preenchido!', mtInformation, [mbOK], 0);
+      EdtPrecoUnit.SetFocus;
+      Exit;
+    end;
+
+    if StrToFloat(EdtPrecoUnit.Text) = 0 then
+    begin
+      MessageDlg('O preço unitário não pode ser igual a 0!', mtInformation, [mbOK], 0);
+      EdtPrecoUnit.SetFocus;
+      Exit;
+    end;
+
+    if EdtPrecoTotal.Text = '' then
+    begin
+      MessageDlg('o preço total deve ser preenchido!', mtInformation, [mbOK], 0);
+      EdtPrecoTotal.SetFocus;
+      Exit;
+    end;
+
+    if StrToFloat(EdtPrecoTotal.Text) = 0 then
+    begin
+      MessageDlg('O preço total não pode ser igual a 0!', mtInformation, [mbOK], 0);
+      EdtPrecoTotal.SetFocus;
+      Exit;
+    end;
   end;
-
   Result := True;
 end;
 
-procedure TFrmCadVenda.GravarDados;
-var Venda : TVenda;
-begin
-  Venda := TVenda.Create;
-  try
-    case FOperacao of
-      opNovo    : InserirVendas();
-      opAlterar : AlterarVendas();
-    end;
-  finally
-    FreeAndNil(Venda);
-  end;
-end;
 
-procedure TFrmCadVenda.GravarDadosItens;
-begin
-
-
-  {
-  with DmTabelas.QryPesquisarItens do
-  begin
-    while not DmTabelas.QryPesquisarItens.eof do
-    begin
-      CdsVendaItem.Append;
-      CdsVendaItemCOD_PRODUTO.AsInteger := FieldByName('COD_PRODUTO').AsInteger;
-      CdsVendaItemDES_DESCRICAO.AsString := FieldByName('DES_DESCRICAO').AsString;
-      CdsVendaItemVAL_QUANTIDADE.AsInteger := FieldByName('VAL_QUANTIDADE').AsInteger;
-      CdsVendaItemVAL_PRECO_UNITARIO.AsFloat := FieldByName('VAL_PRECO_UNITARIO').AsFloat;
-      CdsVendaItemVAL_TOTAL_VENDA.AsFloat := FieldByName('VAL_TOTAL_VENDA').AsFloat;
-      CdsVendaItem.Post;
-      PreencheCdsVendaItem();
-      DmTabelas.QryPesquisarItens.Next;
-    end;
-  end;
-  }
-
-
-end;
-
-procedure TFrmCadVenda.GravarDadosVenda;
-begin
-  case FOperacao of
-    opNovo    : InserirVendas();
-    opAlterar : AlterarVendas();
-  end;
-end;
 
 procedure TFrmCadVenda.PesquisarProdutosAtivos;
 var Produto: TProduto;
@@ -379,10 +407,8 @@ begin
 
   GbxDados.Enabled := False;
   GbxItens.Enabled := True;
-  BtnGravar.Enabled := True;
   BtnCancelar.Enabled := True;
   LCbxProdutos.SetFocus;
-
 end;
 
 procedure TFrmCadVenda.BtnAddItemGridClick(Sender: TObject);
@@ -401,18 +427,61 @@ end;
 
 procedure TFrmCadVenda.BtnDelItemGridClick(Sender: TObject);
 begin
-  CdsVendaItem.Delete;
-  CdsVendaItem.Post;
-  CdsVendaItem.Refresh;
+  if MessageDlg('Deseja excluir o registro selecionado?', mtConfirmation, [mbYes, mbNo], mrNo) = mrNo then
+    Exit
+  else
+  begin
+    MTblVendaItem.Locate('ID_ITEM', MTblVendaItemID_ITEM.AsInteger, []);
+    MTblVendaItem.Delete;
+    MTblVendaItem.ApplyUpdates(0);
+    totVenda := totVenda -  MTblVendaItemVAL_PRECO_UNITARIO.AsFloat;
+    EdtTotalVenda.Text := FloatToStr(totVenda);
+  end;
 end;
 
-
-
+procedure TFrmCadVenda.BtnGravarClick(Sender: TObject);
+begin
+  if FOperacao = opNovo then
+  begin
+    InserirVendas();
+    InserirVendaItens();
+  end
+  else
+  if FOperacao = opAlterar then
+  begin
+    AlterarVendas();
+    AlterarVendaItens();
+    LimpaCamposPedido();
+    LimpaCamposItens();
+    MTblVendaItem.Close;
+    MessageDlg('Produto inserido com sucesso!', mtInformation, [mbOK],0);
+  end
+end;
 
 procedure TFrmCadVenda.LCbxClienteClick(Sender: TObject);
 begin
   if LCbxCliente.KeyValue > 0 then
     EdtCodCliente.Text := IntToStr(LCbxCliente.KeyValue)
+end;
+
+procedure TFrmCadVenda.LCbxProdutosExit(Sender: TObject);
+var Produto : TProduto;
+    sErro: String;
+begin
+  Produto := TProduto.Create;
+  try
+    if MTblVendaItem.Locate('COD_PRODUTO', FloatToStr(LCbxProdutos.KeyValue), []) then
+    begin
+      MessageDlg('Produto já inserido!', mtError, [mbOK],0);
+      LCbxProdutos.SetFocus;
+      Exit;
+    end;
+
+    EdtPrecoUnit.Text := FloatToStr(Produto.RetornaValorUnitario(LCbxProdutos.KeyValue));
+  finally
+    FreeAndNil(Produto);
+  end;
+  EdtQuantidade.SetFocus;
 end;
 
 procedure TFrmCadVenda.LimpaCamposPedido;
@@ -433,6 +502,9 @@ end;
 
 procedure TFrmCadVenda.BtnCancelarClick(Sender: TObject);
 begin
+  LimpaCamposPedido();
+  LimpaCamposItens();
+  MTblVendaItem.Close;
   GbxDados.Enabled := True;
   GbxItens.Enabled := False;
   BtnGravar.Enabled := False;
@@ -442,18 +514,19 @@ end;
 
 procedure TFrmCadVenda.PreencheCdsVendaItem;
 begin
-  with CdsVendaItem do
+  with MTblVendaItem do
   begin
-    CdsVendaItem.Append;
-    CdsVendaItemCOD_PRODUTO.AsInteger := LCbxProdutos.KeyValue;
-    CdsVendaItemDES_DESCRICAO.AsString := LCbxProdutos.Text;
-    CdsVendaItemVAL_QUANTIDADE.AsInteger := StrToInt(EdtQuantidade.Text);
-    CdsVendaItemVAL_PRECO_UNITARIO.AsFloat := StrToFloat(EdtPrecoUnit.Text);
-    CdsVendaItemVAL_TOTAL_VENDA.AsFloat := StrToFloat(EdtPrecoTotal.Text);
-    CdsVendaItem.Post;
+    MTblVendaItem.Append;
+    MTblVendaItemCOD_PRODUTO.AsInteger := LCbxProdutos.KeyValue;
+    MTblVendaItemDES_DESCRICAO.AsString := LCbxProdutos.Text;
+    MTblVendaItemVAL_QUANTIDADE.AsInteger := StrToInt(EdtQuantidade.Text);
+    MTblVendaItemVAL_PRECO_UNITARIO.AsFloat := StrToFloat(EdtPrecoUnit.Text);
+    MTblVendaItemVAL_TOTAL_VENDA.AsFloat := StrToFloat(EdtPrecoTotal.Text);
+    MTblVendaItem.Post;
+    totVenda := totVenda +  MTblVendaItemVAL_TOTAL_VENDA.AsFloat;
+    EdtTotalVenda.Text := FloatToStr(totVenda);
   end;
 end;
-
 
 procedure TFrmCadVenda.BtnSairClick(Sender: TObject);
 begin
