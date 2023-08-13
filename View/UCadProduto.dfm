@@ -90,6 +90,7 @@ inherited FrmCadProduto: TFrmCadProduto
         Text = '0.00'
         OnChange = EdtPrecoUnitarioChange
         OnExit = EdtPrecoUnitarioExit
+        OnKeyPress = EdtPrecoUnitarioKeyPress
       end
       object EdtCodProduto: TEdit
         Left = 103

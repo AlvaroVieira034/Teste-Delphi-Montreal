@@ -226,7 +226,16 @@ object DmTabelas: TDmTabelas
   object TblProdutos: TFDQuery
     Connection = DmConexao.FDConnection
     SQL.Strings = (
-      'SELECT * FROM TAB_PRODUTO')
+      'SELECT PRD.COD_PRODUTO'
+      '      ,PRD.COD_STATUS'
+      '      ,PRD.DES_DESCRICAO'
+      '      ,PRD.VAL_PRECO_UNITARIO'
+      '      ,PRD.COD_FORNECEDOR'
+      '      ,FRN.DES_NOME_FANTASIA'
+      'FROM TAB_PRODUTO PRD'
+      
+        '  INNER JOIN TAB_FORNECEDOR FRN ON PRD.COD_FORNECEDOR = FRN.COD_' +
+        'FORNECEDOR')
     Left = 456
     Top = 139
     object TblProdutosCOD_PRODUTO: TFDAutoIncField
@@ -254,6 +263,11 @@ object DmTabelas: TDmTabelas
       FieldName = 'COD_FORNECEDOR'
       Origin = 'COD_FORNECEDOR'
       Required = True
+    end
+    object TblProdutosDES_NOME_FANTASIA: TStringField
+      FieldName = 'DES_NOME_FANTASIA'
+      Origin = 'DES_NOME_FANTASIA'
+      Size = 50
     end
   end
   object QryPesquisarItens: TFDQuery

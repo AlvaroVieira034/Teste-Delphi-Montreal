@@ -44,15 +44,17 @@ begin
   begin
     Close;
     SQL.Clear;
-    SQL.Add('SELECT COD_PRODUTO');
-    SQL.Add(',COD_STATUS');
-    SQL.Add(',DES_DESCRICAO');
-    SQL.Add(',VAL_PRECO_UNITARIO');
-    SQL.Add(',COD_FORNECEDOR');
-    SQL.Add('FROM TAB_PRODUTO');
+    SQL.Add('SELECT PRD.COD_PRODUTO');
+    SQL.Add(',PRD.COD_STATUS');
+    SQL.Add(',PRD.DES_DESCRICAO');
+    SQL.Add(',PRD.VAL_PRECO_UNITARIO');
+    SQL.Add(',PRD.COD_FORNECEDOR');
+    SQL.Add(',FRN.DES_NOME_FANTASIA');
+    SQL.Add('FROM TAB_PRODUTO PRD');
+    SQL.Add('INNER JOIN TAB_FORNECEDOR FRN ON PRD.COD_FORNECEDOR = FRN.COD_FORNECEDOR');
     SQL.Add('WHERE ' + campoIndice + ' like :pNOME');
     if filtro = 'Ativos' then
-      SQL.Add('AND COD_STATUS = 0 ');
+      SQL.Add('AND PRD.COD_STATUS = 0 ');
 
     SQL.Add('ORDER BY ' + campoIndice);
     ParamByName('PNOME').AsString := sNome + '%';

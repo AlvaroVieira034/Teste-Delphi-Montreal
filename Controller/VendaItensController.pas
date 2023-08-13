@@ -128,7 +128,7 @@ begin
     ParamByName('VAL_PRECO_UNITARIO').AsFloat := Val_Preco_Unitario;
     ParamByName('VAL_QUANTIDADE').AsInteger := Val_Quantidade;
     ParamByName('VAL_TOTAL_VENDA').AsFloat := Val_Total_Venda;
-    ParamByName('COD_VENDA').AsInteger := iCodigo;
+    ParamByName('ID_VENDA').AsInteger := iCodigo;
 
     // Inicia Transação
     DMConexao.FDConnection.StartTransaction;

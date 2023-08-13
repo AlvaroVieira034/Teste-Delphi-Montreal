@@ -54,12 +54,12 @@ begin
   Produto := TProduto.Create;
   try
     if CbxFiltro.Text = 'Código' then
-      campoIndice := 'COD_PRODUTO'
+      campoIndice := 'PRD.COD_PRODUTO'
     else
     if CbxFiltro.Text = 'Descrição' then
-      campoIndice := 'DES_DESCRICAO'
+      campoIndice := 'PRD.DES_DESCRICAO'
     else
-      campoIndice := 'COD_FORNECEDOR';
+      campoIndice := 'DES_NOME_FANTASIA';
 
     Produto.Pesquisar(Trim(EdtPesquisar.Text), campoIndice, '');
   finally

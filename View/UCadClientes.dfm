@@ -121,6 +121,7 @@ inherited FrmCadClientes: TFrmCadClientes
         MaxLength = 19
         TabOrder = 1
         OnExit = EdtCPFExit
+        OnKeyPress = EdtCPFKeyPress
       end
       object RdgAtivo: TRadioGroup
         Left = 15

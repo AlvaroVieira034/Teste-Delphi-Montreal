@@ -33,6 +33,7 @@ type
     procedure EdtCPFExit(Sender: TObject);
     procedure BtnSairClick(Sender: TObject);
     procedure EdtDataNascimentoChange(Sender: TObject);
+    procedure EdtCPFKeyPress(Sender: TObject; var Key: Char);
 
   private
     ValoresOriginais: array of string;
@@ -295,6 +296,13 @@ end;
 
 
 
+
+procedure TFrmCadClientes.EdtCPFKeyPress(Sender: TObject; var Key: Char);
+begin
+  inherited;
+  if not( key in['0'..'9',#08] ) then
+    key:=#0;
+end;
 
 procedure TFrmCadClientes.EdtDataNascimentoChange(Sender: TObject);
 begin

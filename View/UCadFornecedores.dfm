@@ -124,6 +124,7 @@ inherited FrmCadFornecedores: TFrmCadFornecedores
         MaxLength = 19
         TabOrder = 1
         OnExit = EdtCNPJExit
+        OnKeyPress = EdtCNPJKeyPress
       end
       object RdgAtivo: TRadioGroup
         Left = 17

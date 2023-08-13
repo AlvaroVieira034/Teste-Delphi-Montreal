@@ -35,11 +35,6 @@ type
     QryPesquisar: TFDQuery;
     QryTemp: TFDQuery;
     TblProdutos: TFDQuery;
-    TblProdutosCOD_PRODUTO: TFDAutoIncField;
-    TblProdutosCOD_STATUS: TIntegerField;
-    TblProdutosDES_DESCRICAO: TStringField;
-    TblProdutosVAL_PRECO_UNITARIO: TFloatField;
-    TblProdutosCOD_FORNECEDOR: TIntegerField;
     TblVendasProdutosCOD_VENDA: TIntegerField;
     TblVendasProdutosCOD_PRODUTO: TIntegerField;
     TblVendasProdutosDES_DESCRICAO: TStringField;
@@ -60,6 +55,12 @@ type
     TblVendasVAL_TOT_VENDA: TFloatField;
     TblVendasCOD_STATUS: TIntegerField;
     TblVendasVDA_STATUS: TStringField;
+    TblProdutosCOD_PRODUTO: TFDAutoIncField;
+    TblProdutosCOD_STATUS: TIntegerField;
+    TblProdutosDES_DESCRICAO: TStringField;
+    TblProdutosVAL_PRECO_UNITARIO: TFloatField;
+    TblProdutosCOD_FORNECEDOR: TIntegerField;
+    TblProdutosDES_NOME_FANTASIA: TStringField;
   private
     { Private declarations }
   public

@@ -32,6 +32,7 @@ type
     procedure BtnCancelarClick(Sender: TObject);
     procedure BtnSairClick(Sender: TObject);
     procedure EdtCNPJExit(Sender: TObject);
+    procedure EdtCNPJKeyPress(Sender: TObject; var Key: Char);
 
   private
     ValoresOriginais: array of string;
@@ -131,6 +132,13 @@ begin
     MessageDlg('CNPJ Inválido!', mtError, [mbOk], 0);
     EdtCNPJ.SetFocus;
   end;
+end;
+
+procedure TFrmCadFornecedores.EdtCNPJKeyPress(Sender: TObject; var Key: Char);
+begin
+  inherited;
+  if not( key in['0'..'9',#08] ) then
+    key:=#0;
 end;
 
 procedure TFrmCadFornecedores.InserirFornecedores;

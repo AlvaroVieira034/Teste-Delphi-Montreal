@@ -2,6 +2,8 @@ inherited FrmPesqProduto: TFrmPesqProduto
   Caption = 'Cadastro de Produtos - Pesquisa'
   Position = poOwnerFormCenter
   OnShow = FormShow
+  ExplicitWidth = 784
+  ExplicitHeight = 415
   PixelsPerInch = 96
   TextHeight = 13
   inherited PnlBotoesPesquisa: TPanel
@@ -36,20 +38,22 @@ inherited FrmPesqProduto: TFrmPesqProduto
           FieldName = 'COD_STATUS'
           Title.Alignment = taCenter
           Title.Caption = 'Ativo'
+          Width = 43
           Visible = True
         end
         item
+          Alignment = taCenter
           Expanded = False
           FieldName = 'COD_PRODUTO'
           Title.Alignment = taCenter
           Title.Caption = 'C'#243'digo'
+          Width = 50
           Visible = True
         end
         item
           Expanded = False
           FieldName = 'DES_DESCRICAO'
-          Title.Caption = 'Descri'#231#227'o'
-          Width = 326
+          Title.Caption = 'Descri'#231#227'o do Produto'
           Visible = True
         end
         item
@@ -57,16 +61,18 @@ inherited FrmPesqProduto: TFrmPesqProduto
           FieldName = 'VAL_PRECO_UNITARIO'
           Title.Alignment = taCenter
           Title.Caption = 'Pre'#231'o Unit'#225'rio'
-          Width = 77
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'DES_NOME_FANTASIA'
+          Title.Caption = 'Fornecedor'
           Visible = True
         end
         item
           Expanded = False
           FieldName = 'COD_FORNECEDOR'
-          Title.Alignment = taCenter
-          Title.Caption = 'Fornecedor'
-          Width = 67
-          Visible = True
+          Visible = False
         end>
     end
     inherited PnlPesquisar: TPanel
